@@ -195,4 +195,3 @@ cython_debug/
 .DS_Store
 .bash_history
 .cache
-out/
