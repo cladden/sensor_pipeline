@@ -1,0 +1,58 @@
+[tool.poetry]
+name = "sensor-pipeline"
+version = "1.0.0"
+description = "Modular sensor data pipeline with Prefect 3 orchestration"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{include = "sensor_pipeline"}, {include = "sensor_pipeline_prefect"}]
+
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pandas = "^2.0.0"
+pydantic = "^2.0.0"
+pendulum = "^3.0.0"
+prefect = "^3.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0.0"
+pytest-cov = "^4.0.0"
+ruff = "^0.12.0"
+mypy = "^1.16.1"
+pre-commit = "^3.5.0"
+
+[tool.poetry.scripts]
+sensor-pipeline = "sensor_pipeline.cli:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--disable-warnings",
+    "-ra"
+]
+
+
+[tool.mypy]
+strict = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+
+[[tool.mypy.overrides]]
+module = [
+    "pandas.*",
+    "prefect.*",
+]
+ignore_missing_imports = true
+
+ 

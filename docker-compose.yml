@@ -1,0 +1,47 @@
+services:
+  pipeline:
+    build: .
+    volumes:
+      - ./.git:/app/.git
+      - ./out:/app/out
+      - ./data:/app/data
+      - ./sensor_pipeline:/app/sensor_pipeline
+      - ./sensor_pipeline_prefect:/app/sensor_pipeline_prefect
+      - ./tests:/app/tests
+      - ./pyproject.toml:/app/pyproject.toml
+      - ./poetry.lock:/app/poetry.lock
+      - ./.pre-commit-config.yaml:/app/.pre-commit-config.yaml
+    environment:
+      # Only set PREFECT_API_URL when using the UI profile
+      - PREFECT_API_URL=${PREFECT_API_URL:-}
+
+  # Optional Prefect UI + API
+  prefect-server:
+    image: prefecthq/prefect:3-python3.12
+    profiles: ["ui"]
+    command: prefect server start --host 0.0.0.0
+    ports:
+      - "4200:4200"
+      - "4201:4201"
+    environment:
+      - PREFECT_SERVER_API_HOST=0.0.0.0
+
+  # Pipeline with Prefect server integration
+  pipeline-server:
+    build: .
+    profiles: ["ui"]
+    entrypoint: ["python", "-m", "sensor_pipeline_prefect.flow"]
+    volumes:
+      - ./.git:/app/.git
+      - ./out:/app/out
+      - ./data:/app/data
+      - ./sensor_pipeline:/app/sensor_pipeline
+      - ./sensor_pipeline_prefect:/app/sensor_pipeline_prefect
+      - ./tests:/app/tests
+      - ./pyproject.toml:/app/pyproject.toml
+      - ./poetry.lock:/app/poetry.lock
+      - ./.pre-commit-config.yaml:/app/.pre-commit-config.yaml
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
+    depends_on:
+      - prefect-server 

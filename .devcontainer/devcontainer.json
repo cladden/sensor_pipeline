@@ -1,0 +1,29 @@
+{
+  "name": "SensorPipeline",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "pipeline",
+  "workspaceFolder": "/app",
+  "runServices": ["pipeline"],
+  "overrideCommand": true,
+  "command": "sleep infinity",
+  "remoteUser": "root",
+  "initializeCommand": "docker compose -f docker-compose.yml build pipeline",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.pylint",
+        "ms-python.flake8",
+        "charliermarsh.ruff"
+      ]
+    }
+  },
+  "postAttachCommand": "pre-commit install",
+  "shutdownAction": "stopCompose",
+  "forwardPorts": [4200],
+  "portsAttributes": {
+    "4200": {
+      "label": "Prefect UI"
+    }
+  }
+} 
