@@ -39,7 +39,7 @@ class AggregateMesh:
         if "humidity_alert" in df.columns:
             agg_dict["humidity_alert"] = "any"
 
-        agg_df = df.groupby("mesh_id").agg(agg_dict).round(2)
+        agg_df = df.groupby("mesh_id").agg(agg_dict)
 
         # Rename count column
         agg_df = agg_df.rename(columns={"mesh_id": "total_readings"})
