@@ -29,7 +29,7 @@ class ConvertTimestamp:
             df["timestamp"] = df["timestamp"].dt.tz_localize("UTC")
 
         # Convert to EST
-        est_tz = ZoneInfo("America/New_York")
+        est_tz = ZoneInfo("Etc/GMT+5") # constant five-hour west offset
         df["timestamp_est"] = df["timestamp"].dt.tz_convert(est_tz)
 
         return df
