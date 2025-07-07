@@ -1,45 +1,45 @@
 [
   {
     "mesh_id": "mesh-001",
-    "avg_temperature_c": 30.121000,
-    "avg_temperature_f": 86.217800,
-    "avg_humidity": 49.313000,
+    "avg_temperature_c": 30.1210750596849,
+    "avg_temperature_f": 86.21793510743282,
+    "avg_humidity": 49.313460587688965,
     "total_readings": 10018,
     "temperature_alert": true,
     "humidity_alert": true
   },
   {
     "mesh_id": "mesh-002",
-    "avg_temperature_c": 28.034000,
-    "avg_temperature_f": 82.461200,
-    "avg_humidity": 52.333000,
+    "avg_temperature_c": 28.03454103634223,
+    "avg_temperature_f": 82.46217386541602,
+    "avg_humidity": 52.33327764973813,
     "total_readings": 11211,
     "temperature_alert": true,
     "humidity_alert": true
   },
   {
     "mesh_id": "mesh-003",
-    "avg_temperature_c": 34.650000,
-    "avg_temperature_f": 94.370000,
-    "avg_humidity": 47.809000,
+    "avg_temperature_c": 34.65011182949546,
+    "avg_temperature_f": 94.37020129309182,
+    "avg_humidity": 47.808893690584576,
     "total_readings": 9176,
     "temperature_alert": true,
     "humidity_alert": true
   },
   {
     "mesh_id": "mesh-004",
-    "avg_temperature_c": 33.892000,
-    "avg_temperature_f": 93.005600,
-    "avg_humidity": 53.781000,
+    "avg_temperature_c": 33.89224918440249,
+    "avg_temperature_f": 93.00604853192448,
+    "avg_humidity": 53.781458679657675,
     "total_readings": 8671,
     "temperature_alert": true,
     "humidity_alert": true
   },
   {
     "mesh_id": "mesh-005",
-    "avg_temperature_c": 27.295000,
-    "avg_temperature_f": 81.131000,
-    "avg_humidity": 52.421000,
+    "avg_temperature_c": 27.2950749784119,
+    "avg_temperature_f": 81.13113496114141,
+    "avg_humidity": 52.42096965491507,
     "total_readings": 10898,
     "temperature_alert": true,
     "humidity_alert": true
