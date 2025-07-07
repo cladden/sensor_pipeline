@@ -15,6 +15,8 @@ class TestAggregateMesh:
             [
                 {
                     "mesh_id": "mesh-001",
+                    "device_id": "device-A",
+                    "timestamp": "2025-03-26T13:45:00Z",
                     "temperature_c": 22.0,
                     "temperature_f": 71.6,
                     "humidity": 40.0,
@@ -23,6 +25,8 @@ class TestAggregateMesh:
                 },
                 {
                     "mesh_id": "mesh-001",
+                    "device_id": "device-B",
+                    "timestamp": "2025-03-26T13:46:00Z",
                     "temperature_c": 24.0,
                     "temperature_f": 75.2,
                     "humidity": 45.0,
@@ -31,6 +35,8 @@ class TestAggregateMesh:
                 },
                 {
                     "mesh_id": "mesh-002",
+                    "device_id": "device-C",
+                    "timestamp": "2025-03-26T13:47:00Z",
                     "temperature_c": 30.0,
                     "temperature_f": 86.0,
                     "humidity": 60.0,
@@ -72,6 +78,8 @@ class TestAggregateMesh:
             [
                 {
                     "mesh_id": "mesh-hot",
+                    "device_id": "device-A",
+                    "timestamp": "2025-03-26T13:45:00Z",
                     "temperature_c": 70.0,
                     "temperature_f": 158.0,
                     "humidity": 50.0,
@@ -80,6 +88,8 @@ class TestAggregateMesh:
                 },
                 {
                     "mesh_id": "mesh-dry",
+                    "device_id": "device-B",
+                    "timestamp": "2025-03-26T13:46:00Z",
                     "temperature_c": 25.0,
                     "temperature_f": 77.0,
                     "humidity": 5.0,
@@ -88,6 +98,8 @@ class TestAggregateMesh:
                 },
                 {
                     "mesh_id": "mesh-ok",
+                    "device_id": "device-C",
+                    "timestamp": "2025-03-26T13:47:00Z",
                     "temperature_c": 22.0,
                     "temperature_f": 71.6,
                     "humidity": 45.0,
@@ -115,6 +127,8 @@ class TestAggregateMesh:
         df = pd.DataFrame(
             columns=[
                 "mesh_id",
+                "device_id",
+                "timestamp",
                 "temperature_c",
                 "temperature_f",
                 "humidity",
@@ -144,6 +158,8 @@ class TestAggregateMesh:
             [
                 {
                     "mesh_id": "mesh-001",
+                    "device_id": "device-A",
+                    "timestamp": "2025-03-26T13:45:00Z",
                     "temperature_c": 25.0,
                     "temperature_f": 77.0,
                     "humidity": 50.0,

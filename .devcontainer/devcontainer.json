@@ -15,7 +15,15 @@
         "ms-python.pylint",
         "ms-python.flake8",
         "charliermarsh.ruff"
-      ]
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "python.defaultInterpreterPath": "/venv/bin/python",
+        "python.testing.pytestArgs": [
+          "tests"
+        ],
+        "python.testing.pytestEnabled": true
+      }
     }
   },
   "postAttachCommand": "pre-commit install",
