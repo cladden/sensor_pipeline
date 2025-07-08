@@ -25,8 +25,6 @@ class DetectAnomalies:
         Returns:
             DataFrame with temperature_alert and humidity_alert columns
         """
-        df = df.copy()
-
         # Temperature alerts
         df["temperature_alert"] = (
             (df["temperature_c"] < self.config.temp_low)

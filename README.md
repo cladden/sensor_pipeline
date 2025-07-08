@@ -20,12 +20,13 @@ Results appear in `./out/mesh_summary.json` after processing.
 ```
 sensor_pipeline/                    # Framework-agnostic core code
 ├── __init__.py
-├── models.py                       # Pydantic data models
+├── models.py                       # Pandera schemas + Pydantic config models
 ├── transforms/                     # Transformation modules
 │   ├── __init__.py
 │   ├── convert_timestamp.py       # UTC → EST conversion
 │   ├── convert_temperature.py     # Celsius → Fahrenheit
 │   ├── detect_anomalies.py        # Temperature/humidity alerts
+│   ├── validate_schema.py         # Data validation with Pandera
 │   └── aggregate_mesh.py          # Group by mesh_id and aggregate
 ├── sources/                        # Data source implementations
 │   ├── __init__.py
@@ -50,6 +51,7 @@ tests/                             # Pytest suite
 │       ├── test_convert_timestamp.py
 │       ├── test_convert_temperature.py
 │       ├── test_detect_anomalies.py
+│       ├── test_validate_schema.py
 │       └── test_aggregate_mesh.py
 └── sensor_pipeline_prefect/       # Prefect flow tests
     └── test_flow.py
@@ -115,26 +117,60 @@ open http://localhost:4200                     # View dashboard
 
 **Benefits:** Web dashboard, run history, scheduling, team collaboration
 
+### Pipeline Flow Diagram
+
+```mermaid
+graph TD
+    A["📊 Input Data<br/>JSON/JSONL Files"] --> B["🔍 Validate Schema<br/>Check required fields & types"]
+    B --> C["🕐 Convert Timestamp<br/>UTC → Eastern Time"]
+    C --> D["🌡️ Convert Temperature<br/>Celsius → Fahrenheit"]
+    D --> E["⚠️ Detect Anomalies<br/>Temperature & humidity alerts"]
+    E --> F["✅ Validate Processed<br/>Verify transformations"]
+    F --> G["📈 Aggregate by Mesh<br/>Group & compute averages"]
+    G --> H["✅ Validate Output<br/>Final schema check"]
+    H --> I["💾 Output Results<br/>JSON mesh summaries"]
+    
+    style A fill:#e1f5fe
+    style I fill:#e8f5e8
+    style B fill:#fff3e0
+    style F fill:#fff3e0
+    style H fill:#fff3e0
+    style E fill:#ffebee
+```
+
 ### Core Pipeline Steps
 
-1. **Convert Timestamps** (`ConvertTimestamp`)
+1. **Validate Input Schema** (`ValidateSchema`)
+   - Validates incoming sensor data against Pandera schema
+   - Ensures required fields are present with correct types
+   - Provides detailed error messages for invalid data
+
+2. **Convert Timestamps** (`ConvertTimestamp`)
    - Converts UTC timestamps to Eastern Time
    - Handles mixed timestamp formats (normal ISO and malformed +00:00Z)
    - Preserves original timestamp for reference
 
-2. **Convert Temperature** (`ConvertTemperature`) 
+3. **Convert Temperature** (`ConvertTemperature`) 
    - Adds Fahrenheit temperature field
    - Formula: `temp_f = (temp_c * 9/5) + 32`
 
-3. **Detect Anomalies** (`DetectAnomalies`)
+4. **Detect Anomalies** (`DetectAnomalies`)
    - Temperature alerts: < -10°C or > 60°C
    - Humidity alerts: < 10% or > 90%
    - Status alerts: `status != "ok"`
 
-4. **Aggregate by Mesh** (`AggregateMesh`)
+5. **Validate Processed Data** (`ValidateSchema`)
+   - Validates intermediate processing results
+   - Ensures all transformations applied correctly
+
+6. **Aggregate by Mesh** (`AggregateMesh`)
    - Groups readings by `mesh_id`
    - Computes averages and totals
    - Applies alert flags to aggregated values
+
+7. **Validate Output Schema** (`ValidateSchema`)
+   - Final validation of aggregated mesh summary
+   - Ensures output format matches Pandera schema
 
 ### Extensible Design
 
@@ -228,14 +264,14 @@ open http://localhost:4200
 
 ```bash
 # Run all tests
-pytest -q
+pytest tests
 
 # Run specific test modules
 pytest tests/sensor_pipeline/transforms/ -v
 pytest tests/sensor_pipeline/test_pipeline.py::TestSensorPipeline -v
 
 # Test coverage
-pytest --cov=sensor_pipeline
+pytest --cov=sensor_pipeline tests/sensor_pipeline/
 
 # Code quality checks
 pre-commit run --all-files       # All quality checks
@@ -275,7 +311,7 @@ steps = [
     ConvertTemperature(), 
     MyTransform(),        # <-- Insert anywhere
     DetectAnomalies(config),
-    AggregateMesh(config),
+    AggregateMesh(),
 ]
 ```
 
@@ -322,7 +358,7 @@ sensor-pipeline data/sensor_data.json out/results.json
 python -m sensor_pipeline_prefect.flow
 
 # Run tests
-pytest -q
+pytest tests
 
 # Code quality checks (in dev container or with poetry)
 pre-commit run --all-files       # All hooks
@@ -346,7 +382,7 @@ poetry update
 1. **Separation of Concerns**: Core pipeline has no Prefect dependencies
 2. **Modern Python**: Uses Python 3.12+ type hints (`list[str]`, `str | None`)
 3. **Poetry Management**: Dependency management with Poetry and pyproject.toml
-4. **Minimal Dependencies**: Only essential packages (pandas, pydantic, prefect, pytest, pendulum)
+4. **Minimal Dependencies**: Only essential packages (pandas, pandera, pydantic, prefect, pytest, pendulum)
 5. **Container-First**: Designed for Docker deployment from the start
 6. **Test Coverage**: Unit tests for each transform + integration tests
 7. **Code Quality**: Enforced via ruff (linting/formatting) and mypy (type checking)

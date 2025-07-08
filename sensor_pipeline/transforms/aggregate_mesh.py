@@ -1,18 +1,16 @@
 """Aggregate sensor readings by mesh network."""
 
 import pandas as pd
-from ..models import PipelineConfig
 
 
 class AggregateMesh:
     """Aggregate readings by mesh network."""
 
-    def __init__(self, config: PipelineConfig):
-        self.config = config
-
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
         # drop exact duplicates
-        df = df.drop_duplicates(subset=["mesh_id", "device_id", "timestamp"], keep="first")
+        df = df.drop_duplicates(
+            subset=["mesh_id", "device_id", "timestamp"], keep="first"
+        )
 
         agg_dict = {
             "temperature_c": "mean",
@@ -28,16 +26,16 @@ class AggregateMesh:
 
         agg_df = (
             df.groupby("mesh_id")
-              .agg(agg_dict)
-              .rename(columns={"mesh_id": "total_readings"})
-              .reset_index()
-              .rename(
-                  columns={
-                      "temperature_c": "avg_temperature_c",
-                      "temperature_f": "avg_temperature_f",
-                      "humidity": "avg_humidity",
-                  }
-              )
+            .agg(agg_dict)
+            .rename(columns={"mesh_id": "total_readings"})
+            .reset_index()
+            .rename(
+                columns={
+                    "temperature_c": "avg_temperature_c",
+                    "temperature_f": "avg_temperature_f",
+                    "humidity": "avg_humidity",
+                }
+            )
         )
 
         if "temperature_alert" not in agg_df.columns:

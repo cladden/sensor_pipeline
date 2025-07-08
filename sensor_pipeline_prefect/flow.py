@@ -12,6 +12,18 @@ from datetime import timedelta
 from sensor_pipeline.models import PipelineConfig
 from sensor_pipeline.pipeline import create_sensor_pipeline
 from sensor_pipeline.sources import FileSource, SensorSource
+from sensor_pipeline.transforms import (
+    ValidateSchema,
+    ConvertTimestamp,
+    ConvertTemperature,
+    DetectAnomalies,
+    AggregateMesh,
+)
+from sensor_pipeline.models import (
+    sensor_input_schema,
+    processed_reading_schema,
+    mesh_summary_schema,
+)
 
 
 @task(
@@ -42,6 +54,128 @@ def load_to_df(source_url: str) -> pd.DataFrame:
     df = source.load()
     print(f"Loaded {len(df)} sensor readings from {source_url}")
     return df
+
+
+@task
+def validate_sensor_input(df: pd.DataFrame) -> pd.DataFrame:
+    """Validate sensor input data against schema.
+
+    Args:
+        df: Input DataFrame with sensor readings
+
+    Returns:
+        Validated DataFrame
+
+    Raises:
+        SchemaError: If validation fails
+    """
+    transform = ValidateSchema(sensor_input_schema)
+    result = transform.transform(df)
+    print(f"Validated {len(df)} sensor readings")
+    return result
+
+
+@task
+def convert_timestamp(df: pd.DataFrame) -> pd.DataFrame:
+    """Convert UTC timestamps to Eastern Time.
+
+    Args:
+        df: DataFrame with timestamp column
+
+    Returns:
+        DataFrame with timestamp_est column added
+    """
+    transform = ConvertTimestamp()
+    result = transform.transform(df)
+    print(f"Converted timestamps for {len(df)} readings")
+    return result
+
+
+@task
+def convert_temperature(df: pd.DataFrame) -> pd.DataFrame:
+    """Convert temperature from Celsius to Fahrenheit.
+
+    Args:
+        df: DataFrame with temperature_c column
+
+    Returns:
+        DataFrame with temperature_f column added
+    """
+    transform = ConvertTemperature()
+    result = transform.transform(df)
+    print(f"Converted temperatures for {len(df)} readings")
+    return result
+
+
+@task
+def validate_processed_reading(df: pd.DataFrame) -> pd.DataFrame:
+    """Validate processed reading data against schema.
+
+    Args:
+        df: DataFrame with processed readings
+
+    Returns:
+        Validated DataFrame
+
+    Raises:
+        SchemaError: If validation fails
+    """
+    transform = ValidateSchema(processed_reading_schema)
+    result = transform.transform(df)
+    print(f"Validated {len(df)} processed readings")
+    return result
+
+
+@task
+def detect_anomalies(df: pd.DataFrame, config: PipelineConfig) -> pd.DataFrame:
+    """Detect temperature and humidity anomalies.
+
+    Args:
+        df: DataFrame with sensor readings
+        config: Pipeline configuration with thresholds
+
+    Returns:
+        DataFrame with alert columns added
+    """
+    transform = DetectAnomalies(config)
+    result = transform.transform(df)
+    print(f"Detected anomalies for {len(df)} readings")
+    return result
+
+
+@task
+def aggregate_mesh(df: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate readings by mesh network.
+
+    Args:
+        df: DataFrame with sensor readings
+
+    Returns:
+        DataFrame with mesh summaries
+    """
+    transform = AggregateMesh()
+    result = transform.transform(df)
+    print(f"Aggregated {len(df)} readings into {len(result)} mesh summaries")
+    return result
+
+
+@task
+def validate_mesh_summary(df: pd.DataFrame) -> pd.DataFrame:
+    """Validate mesh summary data against schema.
+
+    Args:
+        df: DataFrame with mesh summaries
+
+    Returns:
+        Validated DataFrame
+
+    Raises:
+        SchemaError: If validation fails
+    """
+    transform = ValidateSchema(mesh_summary_schema)
+    result = transform.transform(df)
+    print(f"Validated {len(df)} mesh summaries")
+    return result
 
 
 @task
@@ -101,13 +235,22 @@ def sensor_mesh_summary(
     """
     # Create configuration
     config = PipelineConfig(
-        temp_low=temp_low, temp_high=temp_high, hum_low=hum_low, hum_high=hum_high
+        temp_low=temp_low,
+        temp_high=temp_high,
+        hum_low=hum_low,
+        hum_high=hum_high,
     )
 
     # Execute pipeline tasks
     df = load_to_df(input)
-    summary_df = run_core_pipeline(df, config)
-    persist(summary_df, output_path)
+    validated_df = validate_sensor_input(df)
+    timestamp_df = convert_timestamp(validated_df)
+    temperature_df = convert_temperature(timestamp_df)
+    anomaly_df = detect_anomalies(temperature_df, config)
+    processed_df = validate_processed_reading(anomaly_df)
+    summary_df = aggregate_mesh(processed_df)
+    validated_summary_df = validate_mesh_summary(summary_df)
+    persist(validated_summary_df, output_path)
 
 
 if __name__ == "__main__":

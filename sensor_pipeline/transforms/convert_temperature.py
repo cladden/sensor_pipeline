@@ -15,6 +15,5 @@ class ConvertTemperature:
         Returns:
             DataFrame with additional 'temperature_f' column
         """
-        df = df.copy()
         df["temperature_f"] = (df["temperature_c"] * 9 / 5) + 32
         return df

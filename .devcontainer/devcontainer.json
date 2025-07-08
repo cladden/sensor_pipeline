@@ -19,14 +19,14 @@
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
         "python.defaultInterpreterPath": "/venv/bin/python",
+        "python.testing.pytestEnabled": true,
         "python.testing.pytestArgs": [
           "tests"
-        ],
-        "python.testing.pytestEnabled": true
+        ]
       }
     }
   },
-  "postAttachCommand": "pre-commit install",
+  "postAttachCommand": "git config --global --add safe.directory /app && cd /app && pre-commit install",
   "shutdownAction": "stopCompose",
   "forwardPorts": [4200],
   "portsAttributes": {

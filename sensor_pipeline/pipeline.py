@@ -44,17 +44,26 @@ def create_sensor_pipeline(config: PipelineConfig) -> Pipeline:
         Configured Pipeline instance
     """
     from .transforms import (
+        ValidateSchema,
         ConvertTimestamp,
         ConvertTemperature,
         DetectAnomalies,
         AggregateMesh,
     )
+    from .models import (
+        sensor_input_schema,
+        processed_reading_schema,
+        mesh_summary_schema,
+    )
 
     steps = [
+        ValidateSchema(sensor_input_schema),
         ConvertTimestamp(),
         ConvertTemperature(),
         DetectAnomalies(config),
-        AggregateMesh(config),
+        ValidateSchema(processed_reading_schema),
+        AggregateMesh(),
+        ValidateSchema(mesh_summary_schema),
     ]
 
     return Pipeline(steps)

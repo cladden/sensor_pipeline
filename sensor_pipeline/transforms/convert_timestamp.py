@@ -16,8 +16,6 @@ class ConvertTimestamp:
         Returns:
             DataFrame with additional 'timestamp_est' column
         """
-        df = df.copy()
-
         # Ensure timestamp is datetime and UTC-aware
         if not pd.api.types.is_datetime64_any_dtype(df["timestamp"]):
             # Clean up malformed timestamps that have both +00:00 and Z
@@ -29,7 +27,7 @@ class ConvertTimestamp:
             df["timestamp"] = df["timestamp"].dt.tz_localize("UTC")
 
         # Convert to EST
-        est_tz = ZoneInfo("Etc/GMT+5") # constant five-hour west offset
+        est_tz = ZoneInfo("Etc/GMT+5")  # constant five-hour west offset
         df["timestamp_est"] = df["timestamp"].dt.tz_convert(est_tz)
 
         return df

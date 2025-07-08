@@ -1,46 +1,63 @@
 """Data models for sensor pipeline."""
 
-from datetime import datetime
-
 from pydantic import BaseModel, Field
+import pandera.pandas as pa
 
 
-class SensorReading(BaseModel):
-    """Individual sensor reading."""
-
-    mesh_id: str
-    device_id: str
-    timestamp: datetime
-    temperature_c: float
-    humidity: float
-    status: str
-
-
-class ProcessedReading(BaseModel):
-    """Sensor reading after initial processing."""
-
-    mesh_id: str
-    device_id: str
-    timestamp: datetime
-    timestamp_est: datetime
-    temperature_c: float
-    temperature_f: float
-    humidity: float
-    status: str
-    temperature_alert: bool = False
-    humidity_alert: bool = False
+# Pandera schema for sensor input validation
+sensor_input_schema = pa.DataFrameSchema(
+    {
+        "mesh_id": pa.Column(pa.String, nullable=False),
+        "device_id": pa.Column(pa.String, nullable=False),
+        "timestamp": pa.Column(
+            pa.String, nullable=False
+        ),  # string type to handle malformed timestamps
+        "temperature_c": pa.Column(pa.Float, nullable=False),
+        "humidity": pa.Column(pa.Float, nullable=False),
+        "status": pa.Column(
+            pa.String, checks=pa.Check.isin(["ok", "warning", "error"]), nullable=False
+        ),
+    },
+    strict=True,  # no extra cols
+    coerce=False,  # no auto-cast dtypes
+)
 
 
-class MeshSummary(BaseModel):
-    """Aggregated summary per mesh network."""
+# Pandera schema for processed reading validation
+processed_reading_schema = pa.DataFrameSchema(
+    {
+        "mesh_id": pa.Column(pa.String, nullable=False),
+        "device_id": pa.Column(pa.String, nullable=False),
+        "timestamp": pa.Column(pa.DateTime, nullable=False, coerce=True),
+        "timestamp_est": pa.Column(pa.DateTime, nullable=False, coerce=True),
+        "temperature_c": pa.Column(pa.Float, nullable=False),
+        "temperature_f": pa.Column(pa.Float, nullable=False),
+        "humidity": pa.Column(pa.Float, nullable=False),
+        "status": pa.Column(
+            pa.String, checks=pa.Check.isin(["ok", "warning", "error"]), nullable=False
+        ),
+        "temperature_alert": pa.Column(pa.Bool, nullable=False),
+        "humidity_alert": pa.Column(pa.Bool, nullable=False),
+    },
+    strict=True,  # no extra cols
+    coerce=False,  # no auto-cast dtypes
+)
 
-    mesh_id: str
-    avg_temperature_c: float
-    avg_temperature_f: float
-    avg_humidity: float
-    total_readings: int
-    temperature_alert: bool = False
-    humidity_alert: bool = False
+
+# Pandera schema for mesh summary validation
+mesh_summary_schema = pa.DataFrameSchema(
+    {
+        "mesh_id": pa.Column(pa.String, nullable=False),
+        "avg_temperature_c": pa.Column(pa.Float, nullable=False),
+        "avg_temperature_f": pa.Column(pa.Float, nullable=False),
+        "avg_humidity": pa.Column(pa.Float, nullable=False),
+        "total_readings": pa.Column(pa.Int, nullable=False),
+        "temperature_alert": pa.Column(pa.Bool, nullable=False),
+        "humidity_alert": pa.Column(pa.Bool, nullable=False),
+    },
+    strict=True,  # no extra cols
+    coerce=False,  # no auto-cast dtypes
+)
 
 
 class PipelineConfig(BaseModel):
