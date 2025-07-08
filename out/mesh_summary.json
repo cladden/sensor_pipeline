@@ -5,8 +5,10 @@
     "avg_temperature_f": 86.21793510743282,
     "avg_humidity": 49.313460587688965,
     "total_readings": 10018,
-    "temperature_alert": true,
-    "humidity_alert": true
+    "temperature_anomaly_count": 3036,
+    "humidity_anomaly_count": 1264,
+    "status_anomaly_count": 1505,
+    "healthy_reading_percentage": 55.0
   },
   {
     "mesh_id": "mesh-002",
@@ -14,8 +16,10 @@
     "avg_temperature_f": 82.46217386541602,
     "avg_humidity": 52.33327764973813,
     "total_readings": 11211,
-    "temperature_alert": true,
-    "humidity_alert": true
+    "temperature_anomaly_count": 3493,
+    "humidity_anomaly_count": 1041,
+    "status_anomaly_count": 1600,
+    "healthy_reading_percentage": 55.9
   },
   {
     "mesh_id": "mesh-003",
@@ -23,8 +27,10 @@
     "avg_temperature_f": 94.37020129309182,
     "avg_humidity": 47.808893690584576,
     "total_readings": 9176,
-    "temperature_alert": true,
-    "humidity_alert": true
+    "temperature_anomaly_count": 2757,
+    "humidity_anomaly_count": 1238,
+    "status_anomaly_count": 1495,
+    "healthy_reading_percentage": 50.5
   },
   {
     "mesh_id": "mesh-004",
@@ -32,8 +38,10 @@
     "avg_temperature_f": 93.00604853192448,
     "avg_humidity": 53.781458679657675,
     "total_readings": 8671,
-    "temperature_alert": true,
-    "humidity_alert": true
+    "temperature_anomaly_count": 2216,
+    "humidity_anomaly_count": 823,
+    "status_anomaly_count": 1623,
+    "healthy_reading_percentage": 56.5
   },
   {
     "mesh_id": "mesh-005",
@@ -41,7 +49,9 @@
     "avg_temperature_f": 81.13113496114141,
     "avg_humidity": 52.42096965491507,
     "total_readings": 10898,
-    "temperature_alert": true,
-    "humidity_alert": true
+    "temperature_anomaly_count": 3114,
+    "humidity_anomaly_count": 1291,
+    "status_anomaly_count": 2278,
+    "healthy_reading_percentage": 52.9
   }
 ]

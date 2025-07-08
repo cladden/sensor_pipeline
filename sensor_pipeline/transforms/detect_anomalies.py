@@ -17,26 +17,34 @@ class DetectAnomalies:
         self.config = config
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Add anomaly alert columns.
+        """Detect anomalies in sensor readings.
 
         Args:
-            df: DataFrame with temperature_c and humidity columns
+            df: DataFrame with sensor readings
 
         Returns:
-            DataFrame with temperature_alert and humidity_alert columns
+            DataFrame with anomaly alert columns added
         """
-        # Temperature alerts
-        df["temperature_alert"] = (
-            (df["temperature_c"] < self.config.temp_low)
-            | (df["temperature_c"] > self.config.temp_high)
-            | (df["status"] != "ok")
+        result = df.copy()
+
+        # Temperature anomalies
+        result["temperature_alert"] = (
+            result["temperature_c"] < self.config.temp_low
+        ) | (result["temperature_c"] > self.config.temp_high)
+
+        # Humidity anomalies
+        result["humidity_alert"] = (result["humidity"] < self.config.hum_low) | (
+            result["humidity"] > self.config.hum_high
         )
 
-        # Humidity alerts
-        df["humidity_alert"] = (
-            (df["humidity"] < self.config.hum_low)
-            | (df["humidity"] > self.config.hum_high)
-            | (df["status"] != "ok")
+        # Status anomalies
+        result["status_alert"] = result["status"] != "ok"
+
+        # Composite health indicator: healthy if NO alerts
+        result["is_healthy"] = (
+            (~result["temperature_alert"])
+            & (~result["humidity_alert"])
+            & (~result["status_alert"])
         )
 
-        return df
+        return result

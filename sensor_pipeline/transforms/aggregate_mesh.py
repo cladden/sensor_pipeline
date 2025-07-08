@@ -7,40 +7,52 @@ class AggregateMesh:
     """Aggregate readings by mesh network."""
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        # drop exact duplicates
-        df = df.drop_duplicates(
-            subset=["mesh_id", "device_id", "timestamp"], keep="first"
-        )
+        """Aggregate sensor readings by mesh_id.
 
-        agg_dict = {
-            "temperature_c": "mean",
-            "temperature_f": "mean",
-            "humidity": "mean",
-            "mesh_id": "count",
-        }
+        Args:
+            df: DataFrame with processed sensor readings including is_healthy
 
-        if "temperature_alert" in df.columns:
-            agg_dict["temperature_alert"] = "any"
-        if "humidity_alert" in df.columns:
-            agg_dict["humidity_alert"] = "any"
-
-        agg_df = (
-            df.groupby("mesh_id")
-            .agg(agg_dict)
-            .rename(columns={"mesh_id": "total_readings"})
-            .reset_index()
-            .rename(
-                columns={
-                    "temperature_c": "avg_temperature_c",
-                    "temperature_f": "avg_temperature_f",
-                    "humidity": "avg_humidity",
-                }
+        Returns:
+            DataFrame with mesh-level aggregations
+        """
+        # Handle empty dataframe case
+        if len(df) == 0:
+            return pd.DataFrame(
+                columns=[
+                    "mesh_id",
+                    "avg_temperature_c",
+                    "avg_temperature_f",
+                    "avg_humidity",
+                    "total_readings",
+                    "temperature_anomaly_count",
+                    "humidity_anomaly_count",
+                    "status_anomaly_count",
+                    "healthy_reading_percentage",
+                ]
             )
+
+        # Group by mesh_id and aggregate
+        grouped = (
+            df.groupby("mesh_id")
+            .agg(
+                avg_temperature_c=("temperature_c", "mean"),
+                avg_temperature_f=("temperature_f", "mean"),
+                avg_humidity=("humidity", "mean"),
+                total_readings=("mesh_id", "count"),
+                temperature_anomaly_count=("temperature_alert", "sum"),
+                humidity_anomaly_count=("humidity_alert", "sum"),
+                status_anomaly_count=("status_alert", "sum"),
+                healthy_reading_count=("is_healthy", "sum"),
+            )
+            .reset_index()
         )
 
-        if "temperature_alert" not in agg_df.columns:
-            agg_df["temperature_alert"] = False
-        if "humidity_alert" not in agg_df.columns:
-            agg_df["humidity_alert"] = False
+        # Calculate healthy reading percentage
+        grouped["healthy_reading_percentage"] = (
+            grouped["healthy_reading_count"] / grouped["total_readings"] * 100
+        ).round(1)
 
-        return agg_df
+        # Drop the intermediate count column
+        grouped = grouped.drop(columns=["healthy_reading_count"])
+
+        return grouped

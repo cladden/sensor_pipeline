@@ -38,6 +38,8 @@ processed_reading_schema = pa.DataFrameSchema(
         ),
         "temperature_alert": pa.Column(pa.Bool, nullable=False),
         "humidity_alert": pa.Column(pa.Bool, nullable=False),
+        "status_alert": pa.Column(pa.Bool, nullable=False),
+        "is_healthy": pa.Column(pa.Bool, nullable=False),
     },
     strict=True,  # no extra cols
     coerce=False,  # no auto-cast dtypes
@@ -52,8 +54,10 @@ mesh_summary_schema = pa.DataFrameSchema(
         "avg_temperature_f": pa.Column(pa.Float, nullable=False),
         "avg_humidity": pa.Column(pa.Float, nullable=False),
         "total_readings": pa.Column(pa.Int, nullable=False),
-        "temperature_alert": pa.Column(pa.Bool, nullable=False),
-        "humidity_alert": pa.Column(pa.Bool, nullable=False),
+        "temperature_anomaly_count": pa.Column(pa.Int, nullable=False),
+        "humidity_anomaly_count": pa.Column(pa.Int, nullable=False),
+        "status_anomaly_count": pa.Column(pa.Int, nullable=False),
+        "healthy_reading_percentage": pa.Column(pa.Float, nullable=False),
     },
     strict=True,  # no extra cols
     coerce=False,  # no auto-cast dtypes

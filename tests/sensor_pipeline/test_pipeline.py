@@ -98,8 +98,10 @@ class TestSensorPipeline:
             "avg_temperature_f",
             "avg_humidity",
             "total_readings",
-            "temperature_alert",
-            "humidity_alert",
+            "temperature_anomaly_count",
+            "humidity_anomaly_count",
+            "status_anomaly_count",
+            "healthy_reading_percentage",
         ]
         for col in expected_columns:
             assert col in result.columns
@@ -108,15 +110,19 @@ class TestSensorPipeline:
         mesh001 = result[result["mesh_id"] == "mesh-001"].iloc[0]
         assert mesh001["total_readings"] == 2
         assert mesh001["avg_temperature_c"] == 22.75  # (22.4 + 23.1) / 2
-        assert not mesh001["temperature_alert"]
-        assert not mesh001["humidity_alert"]
+        assert mesh001["temperature_anomaly_count"] == 0
+        assert mesh001["humidity_anomaly_count"] == 0
+        assert mesh001["status_anomaly_count"] == 0
+        assert mesh001["healthy_reading_percentage"] == 100.0
 
         # Check mesh-002 (anomalous reading)
         mesh002 = result[result["mesh_id"] == "mesh-002"].iloc[0]
         assert mesh002["total_readings"] == 1
         assert mesh002["avg_temperature_c"] == -15.2
-        assert mesh002["temperature_alert"]  # Below threshold
-        assert mesh002["humidity_alert"]  # Bad status
+        assert mesh002["temperature_anomaly_count"] == 1  # Below threshold
+        assert mesh002["humidity_anomaly_count"] == 0  # Humidity is normal
+        assert mesh002["status_anomaly_count"] == 1  # Bad status
+        assert mesh002["healthy_reading_percentage"] == 0.0
 
     def test_temperature_conversion_in_pipeline(self) -> None:
         """Test that temperature conversion works in full pipeline."""

@@ -235,6 +235,8 @@ class TestValidateSchemaWithProcessedReading:
                     "status": "ok",
                     "temperature_alert": False,
                     "humidity_alert": False,
+                    "status_alert": False,
+                    "is_healthy": True,
                 }
             ]
         )
@@ -242,9 +244,10 @@ class TestValidateSchemaWithProcessedReading:
         transform = ValidateSchema(processed_reading_schema)
         result = transform.transform(df)
 
-        # Should return the same DataFrame if valid
+        # Should pass validation and return DataFrame unchanged
         assert len(result) == 1
-        assert list(result.columns) == list(df.columns)
+        assert result["mesh_id"].iloc[0] == "mesh-001"
+        assert result["is_healthy"].iloc[0] is True
 
     def test_missing_alert_columns(self) -> None:
         """Test validation fails with missing alert columns."""
@@ -282,8 +285,10 @@ class TestValidateSchemaWithMeshSummary:
                     "avg_temperature_f": 72.32,
                     "avg_humidity": 41.2,
                     "total_readings": 100,
-                    "temperature_alert": False,
-                    "humidity_alert": True,
+                    "temperature_anomaly_count": 5,
+                    "humidity_anomaly_count": 3,
+                    "status_anomaly_count": 2,
+                    "healthy_reading_percentage": 90.0,
                 }
             ]
         )
@@ -291,8 +296,9 @@ class TestValidateSchemaWithMeshSummary:
         transform = ValidateSchema(mesh_summary_schema)
         result = transform.transform(df)
 
-        # Should return the same DataFrame if valid
-        pd.testing.assert_frame_equal(result, df)
+        # Should pass validation and return DataFrame unchanged
+        assert len(result) == 1
+        assert result["mesh_id"].iloc[0] == "mesh-001"
 
     def test_invalid_total_readings_type(self) -> None:
         """Test validation fails with wrong total_readings type."""

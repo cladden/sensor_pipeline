@@ -17,6 +17,7 @@ from sensor_pipeline.transforms import (
     ConvertTimestamp,
     ConvertTemperature,
     DetectAnomalies,
+    DeduplicateReadings,
     AggregateMesh,
 )
 from sensor_pipeline.models import (
@@ -179,6 +180,22 @@ def validate_mesh_summary(df: pd.DataFrame) -> pd.DataFrame:
 
 
 @task
+def deduplicate_readings(df: pd.DataFrame) -> pd.DataFrame:
+    """Remove duplicate sensor readings.
+
+    Args:
+        df: DataFrame with processed readings
+
+    Returns:
+        DataFrame with duplicates removed
+    """
+    transform = DeduplicateReadings()
+    result = transform.transform(df)
+    print(f"Deduplicated from {len(df)} to {len(result)} readings")
+    return result
+
+
+@task
 def run_core_pipeline(df: pd.DataFrame, config: PipelineConfig) -> pd.DataFrame:
     """Run the core sensor pipeline processing.
 
@@ -248,7 +265,8 @@ def sensor_mesh_summary(
     temperature_df = convert_temperature(timestamp_df)
     anomaly_df = detect_anomalies(temperature_df, config)
     processed_df = validate_processed_reading(anomaly_df)
-    summary_df = aggregate_mesh(processed_df)
+    deduplicated_df = deduplicate_readings(processed_df)
+    summary_df = aggregate_mesh(deduplicated_df)
     validated_summary_df = validate_mesh_summary(summary_df)
     persist(validated_summary_df, output_path)
 

@@ -15,6 +15,24 @@ Results appear in `./out/mesh_summary.json` after processing.
 
 > **💡 Tip:** This uses [Standalone Mode](#-standalone-mode-recommended-for-most-users) for simplicity. See [Architecture](#-architecture) for advanced monitoring options.
 
+## 📋 Pipeline Flow
+
+```mermaid
+graph TD
+    A["Input Data<br/>JSON/JSONL Files"] --> B["Validate Schema<br/>Check required fields & types"]
+    B --> C["Convert Timestamp<br/>UTC → Eastern Time"]
+    C --> D["Convert Temperature<br/>Celsius → Fahrenheit"]
+    D --> E["Detect Anomalies<br/>Temperature, humidity & status alerts"]
+    E --> F["Validate Processed Schema<br/>Verify all transformations applied"]
+    F --> G["Deduplicate Readings<br/>Remove duplicate sensor readings"]
+    G --> H["Aggregate by Mesh<br/>Group & compute counts/averages"]
+    H --> I["Validate Output Schema<br/>Final schema check"]
+    I --> J["Output Results<br/>JSON mesh summaries"]
+    
+    style A fill:#e1f5fe
+    style J fill:#e8f5e8
+```
+
 ## 📁 Repository Structure
 
 ```
@@ -25,8 +43,9 @@ sensor_pipeline/                    # Framework-agnostic core code
 │   ├── __init__.py
 │   ├── convert_timestamp.py       # UTC → EST conversion
 │   ├── convert_temperature.py     # Celsius → Fahrenheit
-│   ├── detect_anomalies.py        # Temperature/humidity alerts
+│   ├── detect_anomalies.py        # Temperature/humidity/status alerts
 │   ├── validate_schema.py         # Data validation with Pandera
+│   ├── deduplicate_readings.py    # Remove duplicate sensor readings
 │   └── aggregate_mesh.py          # Group by mesh_id and aggregate
 ├── sources/                        # Data source implementations
 │   ├── __init__.py
@@ -52,6 +71,7 @@ tests/                             # Pytest suite
 │       ├── test_convert_temperature.py
 │       ├── test_detect_anomalies.py
 │       ├── test_validate_schema.py
+│       ├── test_deduplicate_readings.py
 │       └── test_aggregate_mesh.py
 └── sensor_pipeline_prefect/       # Prefect flow tests
     └── test_flow.py
@@ -117,27 +137,6 @@ open http://localhost:4200                     # View dashboard
 
 **Benefits:** Web dashboard, run history, scheduling, team collaboration
 
-### Pipeline Flow Diagram
-
-```mermaid
-graph TD
-    A["📊 Input Data<br/>JSON/JSONL Files"] --> B["🔍 Validate Schema<br/>Check required fields & types"]
-    B --> C["🕐 Convert Timestamp<br/>UTC → Eastern Time"]
-    C --> D["🌡️ Convert Temperature<br/>Celsius → Fahrenheit"]
-    D --> E["⚠️ Detect Anomalies<br/>Temperature & humidity alerts"]
-    E --> F["✅ Validate Processed<br/>Verify transformations"]
-    F --> G["📈 Aggregate by Mesh<br/>Group & compute averages"]
-    G --> H["✅ Validate Output<br/>Final schema check"]
-    H --> I["💾 Output Results<br/>JSON mesh summaries"]
-    
-    style A fill:#e1f5fe
-    style I fill:#e8f5e8
-    style B fill:#fff3e0
-    style F fill:#fff3e0
-    style H fill:#fff3e0
-    style E fill:#ffebee
-```
-
 ### Core Pipeline Steps
 
 1. **Validate Input Schema** (`ValidateSchema`)
@@ -155,20 +154,30 @@ graph TD
    - Formula: `temp_f = (temp_c * 9/5) + 32`
 
 4. **Detect Anomalies** (`DetectAnomalies`)
-   - Temperature alerts: < -10°C or > 60°C
-   - Humidity alerts: < 10% or > 90%
-   - Status alerts: `status != "ok"`
+   - **Temperature alerts**: < -10°C or > 60°C
+   - **Humidity alerts**: < 10% or > 90%
+   - **Status alerts**: `status != "ok"`
+   - Creates separate alert fields for each anomaly type
 
 5. **Validate Processed Data** (`ValidateSchema`)
    - Validates intermediate processing results
    - Ensures all transformations applied correctly
 
-6. **Aggregate by Mesh** (`AggregateMesh`)
-   - Groups readings by `mesh_id`
-   - Computes averages and totals
-   - Applies alert flags to aggregated values
+6. **Deduplicate Readings** (`DeduplicateReadings`)
+   - Removes exact duplicate readings based on mesh_id, device_id, and timestamp
+   - Keeps first occurrence when duplicates exist
+   - Ensures data quality before aggregation
 
-7. **Validate Output Schema** (`ValidateSchema`)
+7. **Aggregate by Mesh** (`AggregateMesh`)
+   - Groups readings by `mesh_id`
+   - Computes temperature/humidity averages for valid readings
+   - **Counts anomalies** instead of boolean flags for better insights:
+     - `temperature_anomaly_count`: Number of temperature alerts
+     - `humidity_anomaly_count`: Number of humidity alerts  
+     - `status_anomaly_count`: Number of status alerts
+   - Calculates `healthy_reading_percentage`: % of readings with zero alerts
+
+8. **Validate Output Schema** (`ValidateSchema`)
    - Final validation of aggregated mesh summary
    - Ensures output format matches Pandera schema
 
@@ -252,13 +261,21 @@ open http://localhost:4200
     "mesh_id": "mesh-001",
     "avg_temperature_c": 30.12,
     "avg_temperature_f": 86.22,
-    "avg_humidity": 49.32,
-    "total_readings": 10022,
-    "temperature_alert": true,
-    "humidity_alert": true
+    "avg_humidity": 49.31,
+    "total_readings": 10018,
+    "temperature_anomaly_count": 3036,
+    "humidity_anomaly_count": 1264,
+    "status_anomaly_count": 1505,
+    "healthy_reading_percentage": 55.0
   }
 ]
 ```
+
+**Key Output Fields:**
+- **Count-based metrics**: Anomaly counts provide richer insights than boolean flags
+- **Healthy reading percentage**: Proportion of readings with zero alerts (0-100%)
+- **Averages**: Temperature/humidity averages calculated from all readings
+- **Total readings**: Number of readings processed per mesh (after deduplication)
 
 ## 🧪 Testing
 

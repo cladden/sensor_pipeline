@@ -180,9 +180,9 @@ class TestPrefectFlowTasks:
                     "mesh_id": "mesh-001",
                     "device_id": "device-A",
                     "timestamp": "2025-03-26T13:45:00Z",
-                    "temperature_c": -15.0,  # Should trigger alert
+                    "temperature_c": -15.0,  # Alert
                     "humidity": 41.2,
-                    "status": "ok",
+                    "status": "error",  # Trigger status alert
                 }
             ]
         )
@@ -193,7 +193,10 @@ class TestPrefectFlowTasks:
         # Should add alert columns
         assert "temperature_alert" in result.columns
         assert "humidity_alert" in result.columns
+        assert "status_alert" in result.columns
         assert result["temperature_alert"].iloc[0]  # Should trigger alert
+        assert not result["humidity_alert"].iloc[0]  # Normal humidity
+        assert result["status_alert"].iloc[0]  # Should trigger status alert
 
     def test_aggregate_mesh_task(self) -> None:
         """Test mesh aggregation task."""
@@ -209,6 +212,7 @@ class TestPrefectFlowTasks:
                     "status": "ok",
                     "temperature_alert": False,
                     "humidity_alert": False,
+                    "status_alert": False,
                 },
                 {
                     "mesh_id": "mesh-001",
@@ -217,9 +221,10 @@ class TestPrefectFlowTasks:
                     "temperature_c": 24.0,
                     "temperature_f": 75.2,
                     "humidity": 42.8,
-                    "status": "ok",
+                    "status": "warning",
                     "temperature_alert": False,
                     "humidity_alert": False,
+                    "status_alert": True,
                 },
             ]
         )
@@ -231,3 +236,11 @@ class TestPrefectFlowTasks:
         assert result["mesh_id"].iloc[0] == "mesh-001"
         assert result["total_readings"].iloc[0] == 2
         assert result["avg_temperature_c"].iloc[0] == 23.0  # (22 + 24) / 2
+        assert result["temperature_anomaly_count"].iloc[0] == 0  # No temp alerts
+        assert result["humidity_anomaly_count"].iloc[0] == 0  # No humidity alerts
+        assert (
+            result["status_anomaly_count"].iloc[0] == 1
+        )  # Status alert from one reading
+        assert (
+            result["healthy_reading_percentage"].iloc[0] == 50.0
+        )  # 1 out of 2 healthy

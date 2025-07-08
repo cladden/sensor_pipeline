@@ -48,6 +48,7 @@ def create_sensor_pipeline(config: PipelineConfig) -> Pipeline:
         ConvertTimestamp,
         ConvertTemperature,
         DetectAnomalies,
+        DeduplicateReadings,
         AggregateMesh,
     )
     from .models import (
@@ -62,6 +63,7 @@ def create_sensor_pipeline(config: PipelineConfig) -> Pipeline:
         ConvertTemperature(),
         DetectAnomalies(config),
         ValidateSchema(processed_reading_schema),
+        DeduplicateReadings(),
         AggregateMesh(),
         ValidateSchema(mesh_summary_schema),
     ]
