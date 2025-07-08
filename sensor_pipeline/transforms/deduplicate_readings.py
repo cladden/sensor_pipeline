@@ -19,4 +19,4 @@ class DeduplicateReadings:
         # Remove exact duplicates and ensure we have our own copy
         return df.drop_duplicates(
             subset=["mesh_id", "device_id", "timestamp"], keep="first"
-        ).copy()
+        )

@@ -26,12 +26,11 @@ class Pipeline:
         Returns:
             Transformed DataFrame after all steps
         """
-        result = df.copy()
 
         for step in self.steps:
-            result = step.transform(result)
+            df = step.transform(df)
 
-        return result
+        return df
 
 
 def create_sensor_pipeline(config: PipelineConfig) -> Pipeline:

@@ -25,26 +25,23 @@ class DetectAnomalies:
         Returns:
             DataFrame with anomaly alert columns added
         """
-        result = df.copy()
 
         # Temperature anomalies
-        result["temperature_alert"] = (
-            result["temperature_c"] < self.config.temp_low
-        ) | (result["temperature_c"] > self.config.temp_high)
+        df["temperature_alert"] = (df["temperature_c"] < self.config.temp_low) | (
+            df["temperature_c"] > self.config.temp_high
+        )
 
         # Humidity anomalies
-        result["humidity_alert"] = (result["humidity"] < self.config.hum_low) | (
-            result["humidity"] > self.config.hum_high
+        df["humidity_alert"] = (df["humidity"] < self.config.hum_low) | (
+            df["humidity"] > self.config.hum_high
         )
 
         # Status anomalies
-        result["status_alert"] = result["status"] != "ok"
+        df["status_alert"] = df["status"] != "ok"
 
         # Composite health indicator: healthy if NO alerts
-        result["is_healthy"] = (
-            (~result["temperature_alert"])
-            & (~result["humidity_alert"])
-            & (~result["status_alert"])
+        df["is_healthy"] = (
+            (~df["temperature_alert"]) & (~df["humidity_alert"]) & (~df["status_alert"])
         )
 
-        return result
+        return df
